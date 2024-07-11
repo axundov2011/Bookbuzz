@@ -59,7 +59,7 @@ const Header = () => {
           </IconButton>
           <Link href="/auth/login">
             <Button variant="contained" startIcon={<AccountCircleIcon />}>
-              Login
+              Log out
             </Button>
           </Link>
         </Grid>
