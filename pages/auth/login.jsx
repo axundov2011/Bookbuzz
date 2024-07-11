@@ -24,22 +24,24 @@ const Login = () => {
     try {
       setSubmitting(true);
       
-      // Dispatch login action
       const loginData = await dispatch(fetchLogin(values)).unwrap();
-  
+
       console.log('Login data:', loginData);
-  
-      if (!loginData || !loginData.jwt) {
+
+      if (!loginData) {
         console.error("Login unsuccessful");
-        return; // Optional: Handle error message display or logging
+        return;
       }
-  
-      // Store token and redirect
-      const userToken = loginData.jwt;
-      window.localStorage.setItem("userToken", userToken);
-      router.push("/home");
-  
-      reset(); // Form reset
+
+      if (loginData.jwt) {
+        const userToken = loginData.jwt;
+
+        window.localStorage.setItem("userToken", userToken);
+
+        router.push("/home");
+      }
+
+      reset();
     } catch (error) {
       console.error("Error during login:", error);
     } finally {
@@ -47,14 +49,12 @@ const Login = () => {
       setLoading(false);
     }
   };
-  
-  
 
   const loginOptions = {
     email: { required: "Email is required" },
     password: { required: "Password is required" },
   };
-  
+
   return (
     <Container maxWidth="sm">
       <Box mt={8} textAlign="center">
