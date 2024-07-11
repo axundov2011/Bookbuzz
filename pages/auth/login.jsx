@@ -3,16 +3,17 @@ import { Container, Box, Typography, TextField, Button, IconButton, InputAdornme
 import EmailIcon from '@mui/icons-material/Email';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { useDispatch} from "react-redux";
+import { useDispatch } from "react-redux";
 import { useForm } from 'react-hook-form';
 import { fetchLogin } from '@/redux/slice/auth.slice';
- // API fonksiyonunuzun bulunduğu dosya
+import { useRouter } from 'next/router';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -24,38 +25,21 @@ const Login = () => {
       setSubmitting(true);
       
       // Dispatch login action
-      const loginData = await dispatch(fetchLogin(values));
-
-      if (!loginData.payload) {
+      const loginData = await dispatch(fetchLogin(values)).unwrap();
+  
+      console.log('Login data:', loginData);
+  
+      if (!loginData || !loginData.jwt) {
         console.error("Login unsuccessful");
         return; // Optional: Handle error message display or logging
       }
-
-      // Check if token is present in the response
-      if ("token" in loginData.payload) {
-        const userToken = loginData.payload.token;
-
-        window.localStorage.setItem("userToken", userToken);
-
-        // Redirect based on user role
-        if (userToken === "user") {
-          navigate("/home");
-        } else {
-          navigate("/login"); // Örnek olarak aynı yönlendirme kullanıldı.
-        }
-        message.success("Successful login :)");
-      }
-
-      // Fetch user data after successful login
-      const userData = await dispatch(fetchUsers(values)); // Buraya dispatch ettiğinizde
-
-      if ('user' in userData.payload) {
-        const user = userData.payload.user;
-        console.log('User:', user);
-        window.localStorage.setItem('user', JSON.stringify(user));
-      }
-
-      reset(); // Formu sıfırla
+  
+      // Store token and redirect
+      const userToken = loginData.jwt;
+      window.localStorage.setItem("userToken", userToken);
+      router.push("/home");
+  
+      reset(); // Form reset
     } catch (error) {
       console.error("Error during login:", error);
     } finally {
@@ -63,11 +47,13 @@ const Login = () => {
       setLoading(false);
     }
   };
+  
+  
 
-const loginOptions = {
-        name: { required: "Name is required" },
-        email: { required: "Email is required" },
-    };
+  const loginOptions = {
+    email: { required: "Email is required" },
+    password: { required: "Password is required" },
+  };
   
   return (
     <Container maxWidth="sm">
@@ -118,7 +104,6 @@ const loginOptions = {
               style={{ marginTop: '16px', backgroundColor: '#000' }}
               type="submit"
               disabled={isSubmitting}
-              
             >
               {isSubmitting ? 'Logging in...' : 'Log In'}
             </Button>
